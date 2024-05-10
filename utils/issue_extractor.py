@@ -1,4 +1,5 @@
 import os
+import pdb
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -8,15 +9,21 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def extract_issues(review_text):
     try:
-        response = client.completions.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            prompt="Identifizier und list die häufigen negativen Themen aus der folgenden App-Store-Bewertung auf. Nutz konkrete standardisierte Begriffe wie 'Störungsmeldung'. Trenn jedes Problem mit einem Komma.: '{}'. ".format(
-                review_text
-            ),
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Identifizier und list die häufigen negativen Themen aus der folgenden App-Store-Bewertung auf. Nutz konkrete standardisierte Begriffe wie 'Störungsmeldung'. Trenn jedes Problem mit einem Komma.: '{}'. ".format(
+                        review_text
+                    ),
+                }
+            ],
             max_tokens=100,
             temperature=0.3,
         )
-        issues = response.choices[0].text.strip()
+        pdb.set_trace()
+        issues = response.choices[0].message.content.strip()
         return [issue.strip() for issue in issues.split(",")]
     except Exception as e:
         print(f"Error processing review: {e}")
@@ -32,3 +39,7 @@ extract_issues(
     Ich frag mich echt wie man eine App durch einen Relaunch so sehr verschlechtern kann.
     """
 )
+
+# PROMPT NEEDS WORK!
+# (Pdb) response.choices[0].message.content.strip()
+# 'Unübersichtlichkeit, Verlinkung auf Webseite, Statisches Fenster verdeckt Bildschirm, Einschränktes Scrollen, Kleines Feld für Störungsmeldung, Mail statt App-Versand, Daten gelöscht nach Update, Neuanmeldung erforderlich, Verlust vorheriger Erfassungen, Verschlechterung durch Relaunch.'
