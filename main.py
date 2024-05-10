@@ -3,9 +3,11 @@ import numpy as np
 
 from app_store_scraper import AppStore
 from ios_app_data import app_list
+from utils.issue_extractor import extract_issues
 
 # Create an empty DataFrame to store the data
-df = pd.DataFrame()
+reviews_df = pd.DataFrame()
+issues_df = pd.DataFrame(columns=['issue_type', 'date', 'app', 'review'])
 
 # Iterate over the app_list
 for app in app_list:
@@ -22,7 +24,21 @@ for app in app_list:
     app_df['app_name'] = app["app_name"]
 
     # concat the app_df to the main DataFrame
-    df = pd.concat([df, app_df])
+    reviews_df = pd.concat([reviews_df, app_df])
+    
+    # Process each review to extract issues
+    for index, row in app_df.iterrows():
+        issues = extract_issues(row['review'])
+        for issue in issues:
+            issue_record = {
+                'issue_type': issue,
+                'date': row['date'],
+                'app': row['app_name'],
+                'review': row['review']
+            }
+            issues_df = issues_df.append(issue_record, ignore_index=True)
 
 # Save the data to a CSV file
-df.to_csv('data.csv', index=False, sep=';', encoding='utf-8')
+reviews_df.to_csv('reviews.csv', index=False, sep=';', encoding='utf-8')
+
+
