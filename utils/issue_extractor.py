@@ -1,22 +1,28 @@
-
 import os
-import openai
+from openai import OpenAI
+from dotenv import load_dotenv
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 def extract_issues(review_text):
-        try:
-                response = openai.Completion.create(
-                    engine="text-davinci-003",
-                    prompt="Identifizier und list die häufigen negativen Themen aus der folgenden App-Store-Bewertung auf. Nutz konkrete standardisierte Begriffe wie 'Störungsmeldung'. Trenn jedes Problem mit einem Komma.: '{}'. ".format(review_text),
-                    max_tokens=100,
-                    temperature=0.3  # Lower temperature may generate more focused and consistent outputs
-                )
-                issues = response.choices[0].text.strip()
-                return [issue.strip() for issue in issues.split(',')]
-        except Exception as e:
-                print(f"Error processing review: {e}")
-                return []
+    try:
+        response = client.completions.create(
+            model="gpt-3.5-turbo",
+            prompt="Identifizier und list die häufigen negativen Themen aus der folgenden App-Store-Bewertung auf. Nutz konkrete standardisierte Begriffe wie 'Störungsmeldung'. Trenn jedes Problem mit einem Komma.: '{}'. ".format(
+                review_text
+            ),
+            max_tokens=100,
+            temperature=0.3,
+        )
+        issues = response.choices[0].text.strip()
+        return [issue.strip() for issue in issues.split(",")]
+    except Exception as e:
+        print(f"Error processing review: {e}")
+        return []
+
+
 extract_issues(
     """
     Nach dem Relauch der App hat sich ihre Qualität extrem verschlechtert. Die App ist extrem unübersichtlich, vieles nicht oder nur schwer zu finden. In manchen Teilen wird einfach auf eine Webseite verlinkt – warum die Funktion nicht einfach in der App spiegeln?
